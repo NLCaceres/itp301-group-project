@@ -10,19 +10,6 @@
 
  <!--    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
   	 <script type ="text/javascript" src = "http://www.turnjs.com/lib/turn.min.js?utm_source=jquer.in&utm_medium=website&utm_campaign=content-curation"</script> -->
-    <script type="text/javascript" src="https://www.google.com/books/jsapi.js"></script>
-    <script type="text/javascript">
-
-      google.books.load();
-
-      function initialize() {
-        var viewer = new google.books.DefaultViewer(document.getElementById('viewerCanvas'));
-        viewer.load('ISBN:0738531367');
-      }
-
-      google.books.setOnLoadCallback(initialize);
-
-      </script>
 
     <style type = "text/css">
     	
@@ -33,35 +20,63 @@
 
     	#book
     	{
-    		width: 1152px;
-    		height: 400px;
+    		width: 100%;
+    		height: 100%;
     	}
 
     	#book .turn-page {
     		background-color: #DDD;
     		background-size:100% 100%;
     	}
+      .own-size {
+        width: 600px;
+        height: 500px;
+      }
     </style>
 
   </head>
 
   <body>
+
+    <div id="heading">
+      <h1 id="Title">Grab a magazine and relax!</h1>
+    </div>
   	
   	<div id ="book">
-    	<div id="viewerCanvas" style="width: 600px; height: 500px"></div>
-    	<div id = "idkSample">oook</div>
+    	<div id='viewerCanvas1' class='own-size'></div>
+        <div id="viewerCanvas2" class='own-size'></div> 
     </div>
 
  <!--  </body> -->
 </body>
   
-     <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
   	<script type ="text/javascript" src = "turn.min.js"></script>
+    <script type="text/javascript" src="https://www.google.com/books/jsapi.js"></script>
     <script type = "text/javascript">
-    console.log("hum");
+
+    google.books.load();
+
+    // Used to keep track of the pages displayed
+    var pageNum = 1;
+    // Used to keep track of the 
+    // number of pages made so far
+    var viewNum = 2;
+
+    function initialize() {
+        var viewer1 = new google.books.DefaultViewer(document.getElementById('viewerCanvas1'));
+        viewer1.load('ISBN:0738531367', alertIssue, alertInit);
+    }
+    function alertInit() {
+      console.log("All done!" + viewNum);
+    }
+    function alertIssue() {
+      console.log("Something is wrong" + viewNum);
+    }
+
+    google.books.setOnLoadCallback(initialize);
 
   	$(window).ready(function() {
-  		console.log("anything?");
   		$('#book').turn({
   			display: 'double',
   			acceleration: true,
@@ -69,15 +84,86 @@
   		});
   	});
  
+  	$("#book").bind("turning", function(event,page,view) {
+  		console.log(page);
+  		console.log(viewNum);
+  		if (page >= viewNum) {
+  			createNewViews();
+  		} else if (page < pageNum) {
+  			turnPageBack();
+  		} else {
+  			// Just skips over this so it can turn the page forward
+  			// and display what's in the div ahead
+  			turnPageForward();
+  		}
+  		console.log(page);
+  		console.log(view);
+  	});
 
   	$(window).bind('keydown', function(e) {
-  		if(e.keyCode == 37) 
-  			{
-  				console.log("hello");
-  				$('#book').turn('previous');
-  			}
-  		else if(e.keyCode == 39) $('#book').turn('next');
+  		if(e.keyCode == 37) {
+     		$('#book').turn('previous');
+  		}
+  		else if(e.keyCode == 39) {
+  			$('#book').turn('next');
+      	}
   	});
+
+    function createNewViews() {
+    	console.log("Page num: " +pageNum);
+        console.log("Num of views: "+viewNum);
+        // This div should always be ready in the background
+        // If it's not there then the animation won't display
+        // If animation doesn't display only way to turn page is arrows
+        // It's "waiting" until someone tries to turn the page
+        // so it can load up and display
+        var divWaiting = new google.books.DefaultViewer(document.getElementById('viewerCanvas' + viewNum));
+  		divWaiting.load('ISBN:0738531367', alertIssue, alertInit);
+
+       	viewNum++;
+       	console.log("Num of views: "+viewNum);
+
+       	var nextView = $("<div>").addClass("own-size").attr("id", "viewerCanvas" + viewNum);        
+        $('#book').turn("addPage", nextView);
+        console.log($("#book").turn("hasPage", viewNum));
+        var viewNext = new google.books.DefaultViewer(document.getElementById('viewerCanvas' + viewNum));
+        viewNext.load('ISBN:0738531367', alertIssue, alertInit);
+
+        viewNum++;
+        console.log("Num of views: "+viewNum);
+
+        var viewAfter = $("<div>").addClass("own-size").attr("id", "viewerCanvas" + viewNum);        
+        $('#book').turn("addPage", viewAfter);
+        console.log($("#book").turn("hasPage", viewNum));
+        // var viewerAfter = new google.books.DefaultViewer(document.getElementById('viewerCanvas' + viewNum));
+        // viewerAfter.load('ISBN:0738531367', alertIssue, alertInit);
+
+        pageNum++;
+  		console.log("Page num: " +pageNum);
+        pageNum++;
+  		console.log("Page num: " +pageNum);
+    }
+
+    function turnPageBack() {
+  		console.log("Page num: " +pageNum);
+        pageNum--;
+  		console.log("Page num: " +pageNum);
+        pageNum--;
+  		console.log("Page num: " +pageNum);
+    }
+    function turnPageForward() {
+    	if (pageNum == 1) {
+    		console.log("Page num: "+pageNum);
+    		pageNum++;
+    		console.log("Page num: "+pageNum);
+    	} else {
+    		console.log("Page num: " +pageNum);
+        	pageNum++;
+  			console.log("Page num: " +pageNum);
+        	pageNum++;
+  			console.log("Page num: " +pageNum);
+    	}
+    }
 
     </script>
 
